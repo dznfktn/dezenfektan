@@ -165,7 +165,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // Start blocking selected users
   startBlockingButton.addEventListener("click", () => {
     chrome.storage.local.get(["waitTime"], (result) => {
-      const waitTime = result.waitTime || 2000; // Default to 2 second if not specified
+      const baseWaitTime = result.waitTime || 2000; // Default to 2 second if not specified
+      const maxRandomAddition = 3000; // Maximum random addition in milliseconds
 
       // Add additional usernames from the text area
       const additionalUsernames = document
@@ -195,7 +196,8 @@ document.addEventListener("DOMContentLoaded", () => {
         chrome.runtime.sendMessage({
           action: "startBlocking",
           usersList: finalUsersList,
-          waitTime,
+          waitTime: baseWaitTime,
+          maxRandomAddition: maxRandomAddition
         });
       });
 
@@ -214,8 +216,13 @@ document.addEventListener("DOMContentLoaded", () => {
           const percentage = Math.round((blockedCount / totalUsers) * 100);
           startBlockingButton.textContent = `Bloklama Sürüyor: % ${percentage}`;
 
-          // Wait and then block the next user
-          setTimeout(blockNextUser, waitTime);
+          // Calculate a random wait time: base time + random additional time
+          const randomAddition = Math.floor(Math.random() * maxRandomAddition);
+          const totalWaitTime = baseWaitTime + randomAddition;
+          console.log(`Waiting ${totalWaitTime}ms before next block`);
+
+          // Wait and then block the next user with randomized timing
+          setTimeout(blockNextUser, totalWaitTime);
         } else {
           startBlockingButton.textContent = "Blocking Complete";
           button.disabled = false; // Re-enable the button after completion
